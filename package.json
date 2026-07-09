@@ -1,0 +1,24 @@
+{
+  "name": "chtm-admin-main",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.2",
+    "tailwindcss": "^4.3.2"
+  },
+  "dependencies": {
+    "@inertiajs/vue3": "^3.6.0",
+    "@tailwindcss/vite": "^4.3.2",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "laravel-vite-plugin": "^3.1.0",
+    "vite": "^8.1.3",
+    "vue": "^3.5.39",
+    "ziggy-js": "^2.6.3"
+  }
+}
