@@ -43,7 +43,7 @@ onMounted(() => {
                         <h1 class="text-base font-black tracking-tight">CHTM RRS</h1>
                         <p class="text-[10px] text-teal-300/80 font-bold uppercase tracking-wider">Hotel Management</p>
                     </div>
-                    <button @click="mobileOpen = false" class="text-white/40 hover:text-white p-1 rounded-lg">
+                    <button @click="mobileOpen = false" class="text-white/40 hover:text-white p-1 rounded-lg transition">
                         <i class="ti ti-x text-lg"></i>
                     </button>
                 </div>

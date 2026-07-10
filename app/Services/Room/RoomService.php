@@ -3,14 +3,12 @@
 namespace App\Services\Room;
 
 use App\Models\HousekeepingTask;
-use App\Models\HousekeepingTaskItem;
 use App\Models\HousekeepingTemplate;
 use App\Models\HousekeepingTemplateItem;
 use App\Models\Room;
 use App\Models\RoomType;
 use App\Support\AuditLogger;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,34 +16,28 @@ final class RoomService
 {
     public function getRooms(): Collection
     {
-        return Cache::remember('rooms.all', 300, function () {
-            return Room::query()
-                ->with(['roomType:id,name', 'roomType.amenities:id,name'])
-                ->select('id', 'room_type_id', 'room_number', 'floor', 'status', 'make_up_room', 'price_override')
-                ->orderBy('room_number')
-                ->get();
-        });
+        return Room::query()
+            ->with(['roomType:id,name', 'roomType.amenities:id,name'])
+            ->select('id', 'room_type_id', 'room_number', 'floor', 'status', 'make_up_room', 'price_override')
+            ->orderBy('room_number')
+            ->get();
     }
 
     public function getRoomTypes(): Collection
     {
-        return Cache::remember('rooms.types', 300, function () {
-            return RoomType::query()->with('amenities:id,name')
-                ->select('id', 'name', 'description', 'base_price', 'capacity')
-                ->orderBy('name')
-                ->get();
-        });
+        return RoomType::query()->with('amenities:id,name')
+            ->select('id', 'name', 'description', 'base_price', 'capacity')
+            ->orderBy('name')
+            ->get();
     }
 
     public function getTasks(): Collection
     {
-        return Cache::remember('rooms.tasks', 120, function () {
-            return HousekeepingTask::query()
-                ->with(['room.roomType', 'items', 'assignedTo:id,fname,lname'])
-                ->select('id', 'room_id', 'template_id', 'status', 'note', 'started_at', 'completed_at', 'created_at')
-                ->orderByDesc('created_at')
-                ->get();
-        });
+        return HousekeepingTask::query()
+            ->with(['room.roomType', 'items', 'assignedTo:id,fname,lname'])
+            ->select('id', 'room_id', 'template_id', 'status', 'note', 'started_at', 'completed_at', 'created_at')
+            ->orderByDesc('created_at')
+            ->get();
     }
 
     public function createRoom(array $data): Room
@@ -59,7 +51,6 @@ final class RoomService
             ]);
 
             AuditLogger::log('rooms', $room->id, 'CREATE', null, $data, Auth::user());
-            Cache::forget('rooms.all');
 
             return $room;
         });
@@ -79,7 +70,6 @@ final class RoomService
             ]);
 
             AuditLogger::log('rooms', $room->id, 'UPDATE', $oldData, $data, Auth::user());
-            Cache::forget('rooms.all');
 
             return $room->fresh(['roomType.amenities', 'images']);
         });
@@ -92,7 +82,6 @@ final class RoomService
             $room->delete();
 
             AuditLogger::log('rooms', $room->id, 'DELETE', $oldData, null, Auth::user());
-            Cache::forget('rooms.all');
         });
     }
 
@@ -106,13 +95,12 @@ final class RoomService
         $room->update([
             'status' => $isSet ? 'do_not_disturb' : 'available',
         ]);
-        Cache::forget('rooms.all');
     }
 
-    public function requestMakeUpRoom(Room $room, int $roomTypeId): void
+    public function requestMakeUpRoom(Room $room, ?int $roomTypeId): void
     {
         DB::transaction(function () use ($room, $roomTypeId) {
-            $room->update(['make_up_room' => true]);
+            $room->update(['make_up_room' => true, 'status' => 'cleaning']);
             
             // Create a housekeeping task
             HousekeepingTask::query()->create([
@@ -120,16 +108,12 @@ final class RoomService
                 'status' => 'pending',
                 'note' => 'Make up room requested',
             ]);
-            
-            Cache::forget('rooms.all');
-            Cache::forget('rooms.tasks');
         });
     }
 
     public function clearMakeUpRoom(Room $room): void
     {
         $room->update(['make_up_room' => false]);
-        Cache::forget('rooms.all');
     }
 
     public function startCleaning(HousekeepingTask $task): void
@@ -138,7 +122,6 @@ final class RoomService
             'status' => 'in_progress',
             'started_at' => now(),
         ]);
-        Cache::forget('rooms.tasks');
     }
 
     public function completeCleaning(HousekeepingTask $task): void
@@ -149,13 +132,13 @@ final class RoomService
                 'completed_at' => now(),
             ]);
             
-            // Clear the make_up_room flag on the room
-            if ($task->room) {
-                $task->room->update(['make_up_room' => false]);
+            // Clear the make_up_room flag and set room to available
+            if ($task->room_id) {
+                $room = Room::query()->whereKey($task->room_id)->first();
+                if ($room) {
+                    $room->update(['make_up_room' => false, 'status' => 'available']);
+                }
             }
-            
-            Cache::forget('rooms.all');
-            Cache::forget('rooms.tasks');
         });
     }
 

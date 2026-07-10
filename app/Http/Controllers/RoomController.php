@@ -83,7 +83,7 @@ class RoomController extends Controller
             'do_not_disturb' => $this->rooms->setDoNotDisturb($room, $room->status !== 'do_not_disturb'),
             'make_up_room' => $room->make_up_room
                 ? $this->rooms->clearMakeUpRoom($room)
-                : $this->rooms->requestMakeUpRoom($room, (int) $room->room_type_id),
+                : $this->rooms->requestMakeUpRoom($room, $room->room_type_id),
             default => null,
         };
         return back();
@@ -97,6 +97,7 @@ class RoomController extends Controller
 
     public function completeCleaning(HousekeepingTask $task): RedirectResponse
     {
+        $task->load('room');
         $this->rooms->completeCleaning($task);
         return back()->with('status', 'Cleaning completed.');
     }

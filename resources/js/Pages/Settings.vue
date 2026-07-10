@@ -31,37 +31,94 @@ function saveAdmin() {
 <template>
     <AppLayout>
         <div class="space-y-6 max-w-3xl">
-            <div>
-                <h1 class="text-xl font-bold text-gray-900">System Settings</h1>
-                <p class="text-xs text-gray-500">Configure application preferences and security settings.</p>
+            <div class="page-header">
+                <h1 class="text-heading-1">System Settings</h1>
+                <p class="text-body text-gray-500">Configure application preferences and security settings.</p>
             </div>
 
-            <div class="rounded-xl border border-gray-200 bg-white p-1 shadow-xs inline-flex">
-                <button @click="switchTab('notifications')" class="px-4 py-2 text-xs font-bold rounded-lg transition" :class="activeTab === 'notifications' ? 'bg-pink-500 text-white shadow-xs' : 'text-gray-600 hover:bg-gray-50'">Notifications</button>
-                <button @click="switchTab('appearance')" class="px-4 py-2 text-xs font-bold rounded-lg transition" :class="activeTab === 'appearance' ? 'bg-pink-500 text-white shadow-xs' : 'text-gray-600 hover:bg-gray-50'">Appearance</button>
-                <button @click="switchTab('admin')" class="px-4 py-2 text-xs font-bold rounded-lg transition" :class="activeTab === 'admin' ? 'bg-pink-500 text-white shadow-xs' : 'text-gray-600 hover:bg-gray-50'">Admin</button>
+            <div class="tab-group">
+                <button @click="switchTab('notifications')" 
+                        class="tab-button" 
+                        :class="activeTab === 'notifications' ? 'tab-button-active' : 'tab-button-inactive'">
+                    <i class="ti ti-bell text-sm"></i>
+                    Notifications
+                </button>
+                <button @click="switchTab('appearance')" 
+                        class="tab-button" 
+                        :class="activeTab === 'appearance' ? 'tab-button-active' : 'tab-button-inactive'">
+                    <i class="ti ti-palette text-sm"></i>
+                    Appearance
+                </button>
+                <button @click="switchTab('admin')" 
+                        class="tab-button" 
+                        :class="activeTab === 'admin' ? 'tab-button-active' : 'tab-button-inactive'">
+                    <i class="ti ti-shield text-sm"></i>
+                    Admin
+                </button>
             </div>
 
-            <div v-if="activeTab === 'notifications'" class="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
-                <h3 class="font-bold text-gray-800">Notification Preferences</h3>
-                <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" v-model="notifData.checkIns" class="rounded" /> Check-Ins</label>
-                <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" v-model="notifData.checkOuts" class="rounded" /> Check-Outs</label>
-                <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" v-model="notifData.reservations" class="rounded" /> Reservations</label>
-                <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" v-model="notifData.ratings" class="rounded" /> Ratings</label>
-                <button @click="saveNotifications" class="mt-2 px-4 py-2 bg-pink-500 text-white rounded-lg text-xs font-bold hover:bg-pink-600">Save</button>
+            <div v-if="activeTab === 'notifications'" class="card">
+                <div class="p-6 space-y-4">
+                    <h3 class="text-heading-3">Notification Preferences</h3>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" v-model="notifData.checkIns" class="rounded w-4 h-4 text-teal-600 focus:ring-teal-500" />
+                        <span class="text-body">Check-Ins</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" v-model="notifData.checkOuts" class="rounded w-4 h-4 text-teal-600 focus:ring-teal-500" />
+                        <span class="text-body">Check-Outs</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" v-model="notifData.reservations" class="rounded w-4 h-4 text-teal-600 focus:ring-teal-500" />
+                        <span class="text-body">Reservations</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" v-model="notifData.ratings" class="rounded w-4 h-4 text-teal-600 focus:ring-teal-500" />
+                        <span class="text-body">Ratings</span>
+                    </label>
+                    <div class="pt-4">
+                        <button @click="saveNotifications" class="btn btn-primary">
+                            <i class="ti ti-device-floppy text-xs"></i>
+                            Save Preferences
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div v-if="activeTab === 'appearance'" class="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
-                <h3 class="font-bold text-gray-800">Appearance</h3>
-                <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" v-model="darkMode" class="rounded" /> Dark Mode</label>
-                <button @click="saveAppearance" class="mt-2 px-4 py-2 bg-pink-500 text-white rounded-lg text-xs font-bold hover:bg-pink-600">Save</button>
+            <div v-if="activeTab === 'appearance'" class="card">
+                <div class="p-6 space-y-4">
+                    <h3 class="text-heading-3">Appearance</h3>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" v-model="darkMode" class="rounded w-4 h-4 text-teal-600 focus:ring-teal-500" />
+                        <span class="text-body">Dark Mode</span>
+                    </label>
+                    <div class="pt-4">
+                        <button @click="saveAppearance" class="btn btn-primary">
+                            <i class="ti ti-device-floppy text-xs"></i>
+                            Save Appearance
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div v-if="activeTab === 'admin'" class="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
-                <h3 class="font-bold text-gray-800">Security Settings</h3>
-                <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" v-model="twoFactor" class="rounded" /> Two-Factor Authentication</label>
-                <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" v-model="loginAlert" class="rounded" /> Login Alerts</label>
-                <button @click="saveAdmin" class="mt-2 px-4 py-2 bg-pink-500 text-white rounded-lg text-xs font-bold hover:bg-pink-600">Save</button>
+            <div v-if="activeTab === 'admin'" class="card">
+                <div class="p-6 space-y-4">
+                    <h3 class="text-heading-3">Security Settings</h3>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" v-model="twoFactor" class="rounded w-4 h-4 text-teal-600 focus:ring-teal-500" />
+                        <span class="text-body">Two-Factor Authentication</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" v-model="loginAlert" class="rounded w-4 h-4 text-teal-600 focus:ring-teal-500" />
+                        <span class="text-body">Login Alerts</span>
+                    </label>
+                    <div class="pt-4">
+                        <button @click="saveAdmin" class="btn btn-primary">
+                            <i class="ti ti-device-floppy text-xs"></i>
+                            Save Security Settings
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </AppLayout>
