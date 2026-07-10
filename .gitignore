@@ -1,4 +1,5 @@
 *.log
+resources/js/ziggy.js
 .DS_Store
 .env
 .env.backup

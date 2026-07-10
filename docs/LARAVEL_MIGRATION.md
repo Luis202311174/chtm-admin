@@ -1,23 +1,50 @@
-# CHTM Laravel migration notes
+# CHTM Laravel Application
 
-See [SYSTEM_AUDIT.md](./SYSTEM_AUDIT.md) for the current stack and verification checklist.
+A modern hotel management system built with Laravel 12, Inertia.js, and Vue 3.
 
-## Encryption
+## Tech Stack
 
-Sensitive columns use AES-256-GCM via `App\Casts\Aes256GcmEncrypted`. Login uses `users.email_hash` (SHA-256 of the normalized email). Passwords stay on bcrypt.
+| Layer | Technology |
+|-------|------------|
+| HTTP | `routes/web.php` + `routes/auth.php` |
+| UI | Inertia.js, Vue 3, Tailwind CSS, Tabler Icons |
+| Data | Eloquent, SQLite/MySQL |
+| Sensitive fields | AES-256-GCM (`Aes256GcmEncrypted` cast) |
+| Auth | Session guard, `email_hash` login lookup |
 
-Set `AES_GCM_KEY` in production (32-byte key, base64-encoded with the `base64:` prefix).
+## Pages
 
-## Seed & login
+| URL | Controller |
+|-----|------------|
+| `/login` | `AuthenticatedSessionController` |
+| `/dashboard` | `DashboardController` |
+| `/reservation` | `ReservationController` |
+| `/frontoffice` | `FrontOfficeController` |
+| `/room` | `RoomController` |
+| `/archived` | `ArchivedController` |
+| `/audit` | `AuditController` |
+| `/settings` | `SettingsController` |
+| `/profile` | `ProfileController` |
+
+## Development
 
 ```bash
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
 php artisan migrate:fresh --seed
 php artisan serve
+npm run dev
 ```
 
-- `admin@chtm.local` / `password` (admin)
-- `reservation@chtm.local`, `frontoffice@chtm.local`, `housekeeper@chtm.local` / `password`
+## Default Users
 
-## Legacy React folder
+- `admin@chtm.local` / `password` (super_admin)
+- `reservation@chtm.local` / `password` (reservation)
+- `frontoffice@chtm.local` / `password` (frontoffice)
+- `housekeeper@chtm.local` / `password` (housekeeper)
 
-Archived under `_archive/unused-frontend/`. Safe to delete that folder when you no longer need the reference code.
+## Environment
+
+Set `AES_GCM_KEY` in production (32-byte key, base64-encoded with the `base64:` prefix).
