@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 use App\Exceptions\DecryptionException;
 use Illuminate\Support\Facades\Log;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -14,18 +15,27 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust Render's reverse proxy / HTTPS forwarding
+        $middleware->trustProxies(
+            at: '*',
+            headers: Request::HEADER_X_FORWARDED_FOR |
+                     Request::HEADER_X_FORWARDED_HOST |
+                     Request::HEADER_X_FORWARDED_PORT |
+                     Request::HEADER_X_FORWARDED_PROTO
+        );
+
         // Enforce application role security alias map layers
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureRole::class,
         ]);
-        
+
         // Add Inertia middleware to web group
         $middleware->web(append: [
             HandleInertiaRequests::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // FIXED: Intercept local cryptographic engine exception drops cleanly
+        // Intercept local cryptographic engine exception drops cleanly
         $exceptions->render(function (DecryptionException $e) {
             Log::error('Secured payload execution failure encountered.', [
                 'message' => $e->getMessage()
@@ -35,4 +45,5 @@ return Application::configure(basePath: dirname(__DIR__))
                 'message' => 'The data structural integrity verification signature check failed.'
             ], 400);
         });
-    })->create();
+    })
+    ->create();
