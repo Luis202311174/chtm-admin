@@ -1,5 +1,5 @@
 # ============================================
-# Stage 1: Build Vite frontend assets
+# Stage 1: Build Vue + Inertia frontend assets
 # ============================================
 FROM node:22 AS frontend
 
@@ -7,7 +7,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install
+RUN npm ci
 
 COPY resources ./resources
 COPY public ./public
@@ -35,7 +35,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY . .
 
-# IMPORTANT: Create Laravel cache directories BEFORE composer install
+# Create Laravel cache directories BEFORE composer install
 RUN mkdir -p \
     storage/framework/cache \
     storage/framework/sessions \
@@ -44,13 +44,12 @@ RUN mkdir -p \
     bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Install PHP dependencies
 RUN composer install \
     --no-dev \
     --optimize-autoloader \
     --no-interaction
 
-# Copy compiled Vite assets
+# Copy compiled Vue/Inertia/Vite assets
 COPY --from=frontend /app/public/build ./public/build
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
