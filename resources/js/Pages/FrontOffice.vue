@@ -1,19 +1,29 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
 import AppLayout from '../Layouts/AppLayout.vue'
 
 const page = usePage()
-const props = page.props
-const activeTab = ref(props.tab || 'bookings')
+const activeTab = ref(page.props.tab || 'bookings')
+let pollInterval = null
 const showModal = ref(false)
 const selected = ref(null)
 const processing = ref(false)
 
-const bookings = computed(() => props.bookings || [])
-const rooms = computed(() => props.rooms || [])
-const receipts = computed(() => props.receipts || [])
-const bookingStats = computed(() => props.bookingStats || {})
+const bookings = computed(() => page.props.bookings || [])
+const rooms = computed(() => page.props.rooms || [])
+const receipts = computed(() => page.props.receipts || [])
+const bookingStats = computed(() => page.props.bookingStats || {})
+
+onMounted(() => {
+    pollInterval = setInterval(() => {
+        router.reload({ preserveState: true, preserveScroll: true, only: ['bookings', 'rooms', 'bookingStats', 'tab'] })
+    }, 15000)
+})
+
+onUnmounted(() => {
+    if (pollInterval) clearInterval(pollInterval)
+})
 
 function switchTab(tab) {
     activeTab.value = tab
@@ -102,11 +112,13 @@ function saveBooking() {
                     <i class="ti ti-calendar-check text-sm"></i>
                     Bookings
                 </button>
-                <button @click="switchTab('receipts')"
-                        class="tab-button"
-                        :class="activeTab === 'receipts' ? 'tab-button-active' : 'tab-button-inactive'">
+                <button
+                    type="button"
+                    disabled
+                    class="tab-button tab-button-inactive cursor-not-allowed opacity-60"
+                    title="Receipts feature coming soon">
                     <i class="ti ti-receipt text-sm"></i>
-                    Receipts
+                    Receipts <span class="text-xs font-medium">(Soon)</span>
                 </button>
             </div>
 

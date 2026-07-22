@@ -40,7 +40,6 @@ class User extends Authenticatable
         'fname',
         'lname',
         'email',
-        'email_hash',
         'password',
         'role',
     ];
@@ -53,7 +52,6 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
-        'email_hash',
     ];
 
     /**
@@ -62,19 +60,6 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $appends = [];
-
-    /**
-     * The "booted" method of the model.
-     * Automates fallback hashing checks on mutations.
-     */
-    protected static function booted(): void
-    {
-        static::saving(function (User $user): void {
-            if ($user->isDirty('email') && is_string($user->email) && $user->email !== '') {
-                $user->email_hash = static::hashEmail($user->email);
-            }
-        });
-    }
 
     /**
      * Generates a deterministic, searchable SHA256 signature representation for looking up encrypted rows.

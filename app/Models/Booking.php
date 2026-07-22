@@ -10,6 +10,8 @@ class Booking extends Model
 {
     use HasFactory; 
 
+    public $timestamps = false;
+
     protected $table = 'public.bookings';
 
     protected $fillable = [

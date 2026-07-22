@@ -1,12 +1,11 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
 import AppLayout from '../Layouts/AppLayout.vue'
 
 const page = usePage()
-const props = page.props
 
-const currentTab = ref(props.currentTab || 'pending')
+const currentTab = ref(page.props.currentTab || 'pending')
 const showModal = ref(false)
 const showCalendarModal = ref(false)
 const selectedBooking = ref(null)
@@ -14,6 +13,7 @@ const processing = ref(null)
 const selectedMonth = ref(new Date().getMonth())
 const selectedYear = ref(new Date().getFullYear())
 const selectedRoomTypeId = ref(null)
+let pollInterval = null
 
 // Month/year options
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -66,11 +66,11 @@ const tabs = {
 }
 
 const bookings = computed(() => {
-    return (props.allBookings || []).filter(b => b.status === currentTab.value)
+    return (page.props.allBookings || []).filter(b => b.status === currentTab.value)
 })
 
 const allBookings = computed(() => {
-    return props.allBookings || []
+    return page.props.allBookings || []
 })
 
 // Get unique room types from bookings
@@ -138,6 +138,16 @@ function getBookingForDay(roomId, day) {
 function isBooked(roomId, day) {
     return getBookingForDay(roomId, day) !== undefined
 }
+
+onMounted(() => {
+    pollInterval = setInterval(() => {
+        router.reload({ preserveState: true, preserveScroll: true, only: ['allBookings'] })
+    }, 15000)
+})
+
+onUnmounted(() => {
+    if (pollInterval) clearInterval(pollInterval)
+})
 
 function changeTab(tab) {
     currentTab.value = tab
